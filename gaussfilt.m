@@ -1,4 +1,4 @@
-function [ yfilt ] = gaussfilt( xdata, ydata, sigma, xfilt, M )
+function [ yfilt ] = gaussfilt( xdata, ydata, sigma, xfilt, M, extrap )
 %GAUSSFILT Non-Uniform 1D-Gauss Filter
 %Window size: [t-M,t+M], t in xfilt 
     if nargin < 3
@@ -6,14 +6,22 @@ function [ yfilt ] = gaussfilt( xdata, ydata, sigma, xfilt, M )
     elseif nargin == 3
         xfilt = xdata;
         M = 3 * sigma;
+        extrap = 0;
     elseif nargin == 4
         M = 3 * sigma;
+        extrap = 0;
+    elseif nargin == 5
+        extrap = 0;
     end
     yfilt = zeros(size(xfilt));
     for i = 1:length(xfilt)
         indices = (xdata > (xfilt(i)-M)) & (xdata < (xfilt(i)+M));
-        gaussFactors = gaussKernel(xdata(indices)-xfilt(i), sigma);
-        yfilt(i) = sum(gaussFactors .* ydata(indices)) ./ sum(gaussFactors);
+        if ~isempty(xdata(indices))
+            gaussFactors = gaussKernel(xdata(indices)-xfilt(i), sigma);
+            yfilt(i) = sum(gaussFactors .* ydata(indices)) ./ sum(gaussFactors);
+        else
+            yfilt(i) = extrap;
+        end
     end
 %     figure
 %     plot(xdata,ydata);
